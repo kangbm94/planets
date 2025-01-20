@@ -2,14 +2,17 @@
 void EarthMoon(){
 	TVector3 stop(0,0,0);
 	TVector3 center(0,0,0);
-	TVector3 MoonPosition(0,3.844e8,0);
-	TVector3 MoonVelo(1.022e3,0,0);
-	TVector3 EarthVelo = - (MoonMass/EarthMass) * MoonVelo;//to set CM momentum 0
+	TVector3 MoonPosition(0,0,0);
+	TVector3 MoonVelo(0,0,0);
+//	TVector3 EarthVelo = - (MoonMass/EarthMass) * MoonVelo;//to set CM momentum 0
+	TVector3 EarthVelo = TVector3(0,0,0);//to set CM momentum 0
 	Celestial* Earth = new Celestial(EarthMass,center,EarthVelo);
 	Celestial* Moon = new Celestial(MoonMass,MoonPosition,MoonVelo);
 	World EM;
 	EM.AddPlanet(Earth);
 	EM.AddPlanet(Moon);
+	Earth->AddMoon(Moon);
+	Moon->SetOrbit(MoonDistance,MoonEccentricity,MoonInclination,MoonArgPerigee,MoonLanAscNode,0);
 	vector<TVector3> EarthPos;
 	vector<TVector3> MoonPos;
  	int nstep = 86400*60.;
@@ -47,15 +50,17 @@ void EarthMoon(){
 	for(int i=0;i<np;++i){
 //		grEarth->SetPoint(i,times[i],EarthY[i]);
 		grEarth->SetPoint(i,EarthX[i],EarthY[i]);
-//		grMoon->SetPoint(i,times[i],MoonY[i]);
+		grMoon->SetPoint(i,times[i]*1./86400,MoonY[i]);
 //		grMoon->SetPoint(i,MoonX[i],MoonY[i]);
 	}
-  grEarth->SetMarkerSize(2);
+/*
+ 	grEarth->SetMarkerSize(2);
 	grEarth->SetMarkerStyle(22);
 	grEarth->Draw("APL");
-/*
+*/
+
 	grMoon->SetMarkerSize(2);
 	grMoon->SetMarkerStyle(22);
 	grMoon->Draw("APL");
-*/
+
 }

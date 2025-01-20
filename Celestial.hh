@@ -1,4 +1,5 @@
 #include "Field.hh"
+#include "Orbit.hh"
 static int planet_id = 0;
 class Celestial{
 	protected:
@@ -7,6 +8,10 @@ class Celestial{
 		TVector3 Vel;
 		int id;
 		Field MyField;
+		Celestial* Mother;
+		vector<Celestial*> Moons;
+		Orbit MyOrbit0;
+		bool ConicApproximation = 0;
 	public:
 		Celestial(){
 		};
@@ -20,6 +25,30 @@ class Celestial{
 		}
 		virtual ~Celestial(){
 		}
+		double GetMass(){
+			return Mass;
+		}
+		void SetMother(Celestial* M){
+			Mother = M;//Not recommended to use...
+		}
+		void AddMoon(Celestial* M){
+			Moons.push_back(M);
+			M->SetMother(this);
+		}
+		void AddVelocity(TVector3 V){
+			Vel += V;
+		}
+		void AddPosition(TVector3 X){
+			Pos += X;
+			Update();
+		}
+		void SetVelocity(TVector3 V){
+			Vel = V;
+		}
+		void SetPosition(TVector3 X){
+			Pos = X;
+			Update();
+		}
 		Field GetField(){
 			return MyField;
 		}
@@ -31,6 +60,51 @@ class Celestial{
 		}
 		int GetID(){
 			return id;
+		}
+
+		void SetOrbit(double r, double e, double i, double a, double l,double nu0){
+			MyOrbit0 = Orbit(Mother->GetMass(),r,e,i,a,l);
+			TVector3 pos_orbit = MyOrbit0.GetPosition(nu0);
+			TVector3 vel_orbit = MyOrbit0.GetVelocity(nu0);
+			TVector3 centroid = (Mass/(Mother->GetMass()+Mass))*pos_orbit;
+			Pos = Mother->GetPosition() + pos_orbit;
+			TVector3 dv_mother = -1 * (Mass/(Mother->GetMass()+Mass))*vel_orbit;
+			Mother->AddVelocity(dv_mother);
+			Vel = Mother->GetVelocity() + vel_orbit;
+			Update();
+		}
+		void GetOrbitParameters0(double* pars){
+			pars[0] = MyOrbit0.GetRadi();
+			pars[1] = MyOrbit0.GetEcc();
+			pars[2] = MyOrbit0.GetInc();
+			pars[3] = MyOrbit0.GetArg();
+			pars[4] = MyOrbit0.GetLan();
+		}
+		void GetOrbitParameters(double* pars){
+			TVector3 centroid = (Mass/(Mother->GetMass()+Mass))*Pos + (Mother->GetMass()/(Mother->GetMass()+Mass))*Mother->GetPosition();	
+			TVector3 pos_orbit = Pos - centroid;
+			TVector3 vel_orbit = Vel - Mother->GetVelocity();
+			TVector3 vec_l = pos_orbit.Cross(vel_orbit);
+			TVector3 vec_n = TVector3(0,0,1).Cross(vec_l);
+			double mu = Gconst * (Mother->GetMass());
+			double r = pos_orbit.Mag();
+			TVector3 vec_e = (1/mu)*((vel_orbit.Mag2()-mu/r)*pos_orbit - (pos_orbit*vel_orbit)*vel_orbit);
+
+			double radi = 1./(2./r - vel_orbit.Mag2()/mu);
+			double ecc = vec_e.Mag();
+			double inc = acos(vec_l.Z()/vec_l.Mag());
+			double arg = acos(vec_n*vec_e/(vec_n.Mag()*vec_e.Mag()));
+			double lan = acos(vec_n.X()/vec_n.Mag());
+			if(vec_n.Y()<0){
+				lan = 2*acos(-1) - lan;
+			}
+			double nu = acos(vec_e*pos_orbit/(vec_e.Mag()*pos_orbit.Mag()));
+			pars[0] = radi;
+			pars[1] = ecc;
+			pars[2] = inc*180./acos(-1);
+			pars[3] = arg*180./acos(-1);
+			pars[4] = lan*180./acos(-1);
+			pars[5] = nu;
 		}
 		void PropagateRK4(double dt, vector<Field> Fields ){
 			#if Debug
