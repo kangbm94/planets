@@ -47,7 +47,7 @@ void EarthMoon(){
 	EM.AddPlanet(Earth);
 	EM.AddPlanet(Moon);
 	Earth->AddMoon(Moon);
-	Moon->SetOrbit(MoonDistance,MoonEccentricity,MoonInclination,MoonArgPerigee,MoonLanAscNode,0);
+	Moon->SetOrbit(MoonDistance,MoonEccentricity,180+MoonInclination,MoonArgPerigee,MoonLanAscNode,0);
 	vector<TVector3> EarthPos;
 	vector<TVector3> MoonPos;
 	vector<TVector3> MinmusPos;
@@ -56,10 +56,10 @@ void EarthMoon(){
 	minmus->SetShape(new TGeoSphere(0, size_scale * 1000.1e3));  // Moon's radius in m
 	minmus->SetMainColor(kGreen);                   // Set color
 	gEve->AddElement(minmus);
-	Celestial* Minmus = new Celestial(MoonMass/5,MoonPosition,MoonVelo);
+	Celestial* Minmus = new Celestial(MoonMass/2,MoonPosition,MoonVelo);
 	EM.AddPlanet(Minmus);
-	Earth->AddMoon(Minmus);
-	Minmus->SetOrbit(MoonDistance/2,MoonEccentricity,MoonInclination,MoonArgPerigee,MoonLanAscNode,0.5);
+	Moon->AddMoon(Minmus);
+	Minmus->SetOrbit(MoonDistance/4,MoonEccentricity*2,MoonInclination-15,MoonArgPerigee-44,MoonLanAscNode,0.5);
 #endif
 	gEve->FullRedraw3D(kTRUE);
 	TGLViewer* viewer = gEve->GetDefaultGLViewer();
