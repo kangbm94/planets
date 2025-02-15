@@ -58,10 +58,27 @@ class Celestial{
 		TVector3 GetVelocity(){
 			return Vel;
 		}
+		TVector3 GetCentroid(){
+			return (Mass/(Mother->GetMass()+Mass))*Pos + (Mother->GetMass()/(Mother->GetMass()+Mass))*Mother->GetPosition();	
+		}
+		TVector3 GetCentroidVelocity(){
+			return (Mass/(Mother->GetMass()+Mass))*Vel + (Mother->GetMass()/(Mother->GetMass()+Mass))*Mother->GetVelocity();
+		}
+		TVector3 GetOrbitalPosition(){
+			return Pos - GetCentroid();
+		}
+		TVector3 GetOrbitalVelocity(){
+			return Vel - GetCentroidVelocity();
+		}
 		int GetID(){
 			return id;
 		}
-
+		Celestial* GetMother(){
+			return Mother;
+		}
+		Celestial* GetMoon(int i){
+			return Moons[i];
+		}
 		void SetOrbit(double r, double e, double i, double a, double l,double nu0){
 			MyOrbit0 = Orbit(Mother->GetMass(),r,e,i,a,l);
 			TVector3 pos_orbit = MyOrbit0.GetPosition(nu0);
@@ -81,9 +98,10 @@ class Celestial{
 			pars[4] = MyOrbit0.GetLan();
 		}
 		void GetOrbitParameters(double* pars){
-			TVector3 centroid = (Mass/(Mother->GetMass()+Mass))*Pos + (Mother->GetMass()/(Mother->GetMass()+Mass))*Mother->GetPosition();	
+			TVector3 centroid = GetCentroid();
+			TVector3 centroid_velocity = GetCentroidVelocity();
 			TVector3 pos_orbit = Pos - centroid;
-			TVector3 vel_orbit = Vel - Mother->GetVelocity();
+			TVector3 vel_orbit = Vel - centroid_velocity;
 			TVector3 vec_l = pos_orbit.Cross(vel_orbit);
 			TVector3 vec_n = TVector3(0,0,1).Cross(vec_l);
 			double mu = Gconst * (Mother->GetMass());

@@ -26,6 +26,13 @@ class Orbit{
 			arg = a*acos(-1)/180;
 			lan = l*acos(-1)/180;
 		}
+		void SetParameters(double r, double e, double i, double a, double l){
+			radi = r;
+			ecc = e;
+			inc = i*acos(-1)/180;
+			arg = a*acos(-1)/180;
+			lan = l*acos(-1)/180;
+		}
 		double GetRadi(){
 			return radi;
 		}
